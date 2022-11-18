@@ -1,0 +1,43 @@
+library(AER)
+#install.packages('strucchange')
+library(strucchange)
+library(fBasics)
+library(quantreg)
+library(quantmod)
+library(stargazer)
+#install.packages("tseries")
+library(tseries)
+
+
+DP <- read.table("Dados/BaseDP.csv",sep=';',dec='.',header = TRUE)
+
+##### Parte 1 - Logit #####
+
+#### Questão 1 ####
+#'1.Baixe os dados (BaseLogit.csv) e em seguida, calcule a proporção e a
+#'probabilidade de secionar um investidor de criptomoedas aleatoriamente na base
+logit <- read.table("Dados/BaseLogit.csv",sep=";",dec=".",header=TRUE)
+
+cont_cripto <- as.matrix(as.data.frame(table(logit[,"CRIPTO"]))[,-1])
+rownames(cont_cripto) <- c("Nao tem cripto","Tem Cripto")
+total_amostral <- colSums(cont_cripto)
+cont_cripto <- cbind(cont_cripto,cont_cripto/total_amostral)
+colnames(cont_cripto) <- c("Absoluto","Porcentagem")
+#' Segundo o espaço amostral, a chance de escolher aleatoriamente uma pessoa e ela fazer parte
+#' do mercado de criptomoedas é de 4,53%
+
+#### Questão 2 ####
+regressao_logit <- lm(CRIPTO ~ IDADE + MULHER + BANCODIGITAL + LEITURA + ECON2022
+  + INFLUENCERS + ENSINOSUP + RENDFAM,data = logit)
+summary(regressao_logit)
+# Analisar coeficiente
+# R2 ajustado
+# VIF
+vif(regressao_logit)
+
+#### Questao 3 ####
+#'3.Estime o modelo anterior utilizando a metodologia LOGIT. Analise os coeficientes do modelo e
+#' compare os resultados com os do modelo MQO.
+modellogit <-  glm(CRIPTO ~ IDADE + MULHER + BANCODIGITAL + LEITURA + ECON2022
+  + INFLUENCERS + ENSINOSUP + RENDFAM,data = logit,family=binomial(link="logit"))
+summary(modellogit)
