@@ -23,6 +23,9 @@ rownames(cont_cripto) <- c("Nao tem cripto","Tem Cripto")
 total_amostral <- colSums(cont_cripto)
 cont_cripto <- cbind(cont_cripto,cont_cripto/total_amostral)
 colnames(cont_cripto) <- c("Absoluto","Porcentagem")
+proporcao <- cont_cripto['Tem Cripto','Absoluto'] / cont_cripto['Nao tem cripto','Absoluto']
+proporcao
+cont_cripto
 #' Segundo o espaço amostral, a chance de escolher aleatoriamente uma pessoa e ela fazer parte
 #' do mercado de criptomoedas é de 4,53%
 
@@ -55,4 +58,7 @@ install.packages("pscl")
 library(pscl)
 pR2(modellogit)
 
+classif <- table(fitted(modellogit)>0.0453878,logit$CRIPTO)/sum(table(fitted(modellogit)>0.0453878,logit$CRIPTO))
+classif
+(acuracia <- sum(diag(classif)))
 
