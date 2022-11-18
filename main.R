@@ -41,3 +41,18 @@ vif(regressao_logit)
 modellogit <-  glm(CRIPTO ~ IDADE + MULHER + BANCODIGITAL + LEITURA + ECON2022
   + INFLUENCERS + ENSINOSUP + RENDFAM,data = logit,family=binomial(link="logit"))
 summary(modellogit)
+#### Questão 4 ####
+#' 4.Analise o odds-ratio dos coeficientes e os efeitos marginais do modelo.
+exp(modellogit$coefficients)
+
+LogitScalar<-mean(dlogis(predict(modellogit,type="link")))
+LogitScalar*coef(modellogit)
+#### Questao 5 ####
+#'5.Analise os pseudo-R2 do modelo via metodologia de McFadden, r2ML e r2CU.
+#' Em seguida, analise a acurácia da modelagem, tomando como ponto crítico,
+#' a probabilidade de sortear um individuo que investe em criptomoedas na amostra.
+install.packages("pscl")
+library(pscl)
+pR2(modellogit)
+
+
