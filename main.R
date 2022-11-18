@@ -61,4 +61,5 @@ pR2(modellogit)
 classif <- table(fitted(modellogit)>0.0453878,logit$CRIPTO)/sum(table(fitted(modellogit)>0.0453878,logit$CRIPTO))
 classif
 (acuracia <- sum(diag(classif)))
-
+#Ponto critico = 0.0453878
+logit$prob <- predict(modellogit,data=logit,type="response")
