@@ -7,9 +7,8 @@ library(quantmod)
 library(stargazer)
 #install.packages("tseries")
 library(tseries)
-
-
-DP <- read.table("Dados/BaseDP.csv",sep=';',dec='.',header = TRUE)
+#install.packages("plm")
+library(plm)
 
 ##### Parte 1 - Logit #####
 
@@ -61,5 +60,53 @@ pR2(modellogit)
 classif <- table(fitted(modellogit)>0.0453878,logit$CRIPTO)/sum(table(fitted(modellogit)>0.0453878,logit$CRIPTO))
 classif
 (acuracia <- sum(diag(classif)))
-#Ponto critico = 0.0453878
+#Ponto critico = 0.0453878 - Quantidade de
 logit$prob <- predict(modellogit,data=logit,type="response")
+#### Questão 6 ####
+#'6.	Com base nos coeficientes da regressão, estime, para cada membro do grupo,
+#' a probabilidade dele ser um potencial investidor de criptomoedas. Em seguida, ,
+#' considerando o ponto de corte da questão 5, sinalizem se o modelo acertou ou errou a previsão.
+#- Só colocar Idade, Dummy Mulhe, Banco Digital, Influencers
+coef_significantes <- c(modellogit$coefficients[2],modellogit$coefficients[3],
+                        modellogit$coefficients[4],modellogit$coefficients[8])
+
+vetorDiogo <- c(20,0,1,1)
+(probDiogo <- exp(sum(t(vetorDiogo) * coef_significantes)) / (1+exp(sum(t(vetorDiogo) * coef_significantes))))
+vetorDiogo <- c(vetorDiogo,probDiogo)
+
+vetorLeticia <- c(19,1,1,1)
+(probLeticia <- exp(sum(t(vetorLeticia) * coef_significantes)) / (1+exp(sum(t(vetorLeticia) * coef_significantes))))
+vetorLeticia <- c(vetorLeticia,probLeticia)
+
+
+vetorJoana <- c(19,1,1,1)
+(probJoana <- exp(sum(t(vetorJoana) * coef_significantes)) / (1+exp(sum(t(vetorJoana) * coef_significantes))))
+vetorJoana <- c(vetorJoana, probJoana)
+
+vetorLuisa <- c(19,1,1,1)
+probLuisa <- exp(sum(t(vetorLuisa) * coef_significantes)) / (1+exp(sum(t(vetorLuisa) * coef_significantes)))
+vetorLuisa <- c(vetorLuisa, probLuisa)
+# investem :
+ponto_critico <- 0.0453878
+dados <- matrix(data=rbind(vetorDiogo,vetorLeticia,vetorLuisa, vetorJoana),nrow=4)
+rownames(dados) <- c("Diogo","Leticia","Luisa","Joana")
+colnames(dados) <- c("Idade","Mulher","Banco Digital","Influencers","Probabilidade")
+
+dados <- cbind(dados, as.numeric(dados[,'Probabilidade'] > ponto_critico))
+colnames(dados) <- c(colnames(dados)[-6],"Previsao")
+
+dados <- cbind(dados, c(1,0,0,0))
+colnames(dados) <- c(colnames(dados)[-7],"Realidade")
+
+dados <- cbind(dados, dados[,'Previsao'] == dados[,'Realidade'])
+colnames(dados) <- c(colnames(dados)[-8],"Acertou")
+stargazer(dados,type="text")
+results <- matrix(rbind(c(0,.75),c(0,.25)),nrow=2)
+colnames(results) <- c("Falso","Verdadeiro")
+rownames(results) <- c("Falso","Verdadeiro")
+
+#### Parte 2 - Dados Painel ####
+#### Questão 7 ####
+#7.	Baixe os dados (BaseDP.csv) e em seguida, declare a base de dados como painel.
+DP <- read.table("Dados/BaseDP.csv",sep=';',dec='.',header = TRUE)
+
