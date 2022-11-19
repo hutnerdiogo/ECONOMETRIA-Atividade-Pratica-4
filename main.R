@@ -109,4 +109,35 @@ rownames(results) <- c("Falso","Verdadeiro")
 #### Questão 7 ####
 #7.	Baixe os dados (BaseDP.csv) e em seguida, declare a base de dados como painel.
 DP <- read.table("Dados/BaseDP.csv",sep=';',dec='.',header = TRUE)
+DadosPainel <- pdata.frame(DP,index=c("Banco", "Data"))
+#### Questão 8 ####
+#'8.Gere os modelos pooled, de efeitos fixos e efeitos aleatórios para a equação abaixo.
+#' Em seguida, sumarize os resultados em uma única tabela.
+painel_pool <- plm(ROA~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="pooling")
+painel_fixo <- plm(ROA~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="within")
+painel_aleatorio <- plm(ROA~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="random")
+stargazer(painel_pool,painel_aleatorio,painel_fixo,
+          digits=4,
+          type='text',
+          column.labels = c("Pool","Efeito Fixo","Aleatoiro"))
+summary(fixef(painel_fixo))
+summary(painel_fixo)
+#### Questão 9 ####
+#'Analise os resultados dos modelos gerados do ponto de vista econométrico e prático.
+
+#### Questão 10 ####
+#'10.	Realize os seguintes testes para determinar qual dos modelos é o mais adequado.
+#'a)	Teste para comparar Modelo Pooled vs. Modelo de Efeitos Fixos
+#'b)	Teste para comparar Modelo Pooled vs. Modelo de Efeitos Aleatórios
+#'c)	Teste para comparar Modelo Efeitos Aleatórios vs. Modelo de Efeitos Fixos
+
+#a) Modelo Pooled vs. Modelo de Efeitos Fixos
+pFtest(painel_fixo, painel_pool)
+#b) Modelo Pooled vs. Modelo de Efeitos Aleatórios
+plmtest(painel_aleatorio)
+#c) Modelo Efeitos Aleatórios vs. Modelo de Efeitos Fixos
+phtest(painel_fixo,painel_aleatorio)
+#### Questão 11 ####
+V
+
 
