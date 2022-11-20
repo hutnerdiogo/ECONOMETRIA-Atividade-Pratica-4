@@ -120,8 +120,7 @@ stargazer(painel_pool,painel_aleatorio,painel_fixo,
           digits=4,
           type='text',
           column.labels = c("Pool","Efeito Fixo","Aleatoiro"))
-summary(fixef(painel_fixo))
-summary(painel_fixo)
+
 #### Questão 9 ####
 #'Analise os resultados dos modelos gerados do ponto de vista econométrico e prático.
 
@@ -138,6 +137,33 @@ plmtest(painel_aleatorio)
 #c) Modelo Efeitos Aleatórios vs. Modelo de Efeitos Fixos
 phtest(painel_fixo,painel_aleatorio)
 #### Questão 11 ####
-V
+#' 11.	Reestime os modelos da questão 8 para o ROE e NPL e em seguida,
+#' realize os testes da questão 10 para selecionar qual modelo é mais adequado para cada variável.
+# ROE
+ROE_pool <- plm(ROE~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="pooling")
+ROE_fixo <- plm(ROE~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="within")
+ROE_aleatorio <- plm(ROE~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="random")
+#a) Modelo Pooled vs. Modelo de Efeitos Fixos
+pFtest(ROE_fixo, ROE_pool)
+#b) Modelo Pooled vs. Modelo de Efeitos Aleatórios
+plmtest(ROE_aleatorio)
+#c) Modelo Efeitos Aleatórios vs. Modelo de Efeitos Fixos
+phtest(ROE_fixo,ROE_aleatorio)
+# NPM
+NPM_pool <- plm(NPM~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="pooling")
+NPM_fixo <- plm(NPM~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="within")
+NPM_aleatorio <- plm(NPM~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="random")
+#a) Modelo Pooled vs. Modelo de Efeitos Fixos
+pFtest(NPM_fixo, NPM_pool)
+#b) Modelo Pooled vs. Modelo de Efeitos Aleatórios
+plmtest(NPM_aleatorio)
+#c) Modelo Efeitos Aleatórios vs. Modelo de Efeitos Fixos
+phtest(NPM_fixo,NPM_aleatorio)
 
+#### Questão 12 ####
 
+stargazer(painel_fixo,ROE_fixo,NPM_fixo,
+          digits=4,
+          type='text',
+          title = "Melhores Modelos",
+          omit.stat=c("f", "rsq","adj.rsq"))

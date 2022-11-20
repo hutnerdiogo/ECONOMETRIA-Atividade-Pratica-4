@@ -1,0 +1,305 @@
+---
+title: "Atividade prática n. 4"
+author: "Grupo 9"
+date: "19 de novembro de 2022"
+output:
+  html_document: default
+  pdf_document:
+    keep_tex: yes
+  word_document: default
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+**Relatório do grupo 9**
+
+Tema: *Relatorio sobre ROA, ROE E NMP De bancos*
+
+## Questão 0
+
+Iniciando modulos
+```{r, message = FALSE, warning = FALSE}
+library(AER)
+#install.packages('strucchange')
+library(strucchange)
+library(fBasics)
+library(quantreg)
+library(quantmod)
+library(stargazer)
+#install.packages("tseries")
+library(tseries)#install.packages("plm")
+
+library(plm)
+```
+
+## Questão 1:
+
+Baixe os dados (BaseLogit.csv) e em seguida, calcule a proporção e a probabilidade de secionar um investidor de criptomoedas aleatoriamente na base
+
+```{r}
+logit <- read.table("Dados/BaseLogit.csv",sep=";",dec=".",header=TRUE)
+
+cont_cripto <- as.matrix(as.data.frame(table(logit[,"CRIPTO"]))[,-1])
+rownames(cont_cripto) <- c("Nao tem cripto","Tem Cripto")
+total_amostral <- colSums(cont_cripto)
+cont_cripto <- cbind(cont_cripto,cont_cripto/total_amostral)
+colnames(cont_cripto) <- c("Absoluto","Porcentagem")
+proporcao <- cont_cripto['Tem Cripto','Absoluto'] / cont_cripto['Nao tem cripto','Absoluto']
+proporcao2 <- cont_cripto['Nao tem cripto','Absoluto'] / cont_cripto['Tem Cripto','Absoluto']
+print(paste("Proporcao de ter cripto sobre nao ter cripto:",proporcao))
+print(paste("Proporcao de nao ter cripto sobre  ter cripto:",proporcao2))
+```
+
+```{r}
+cont_cripto
+```
+
+
+## Questão 2
+
+Estime o modelo de regressão múltipla via MQO a seguir e analise os coeficientes, R2 ajustado, o vif e a estatística F:
+
+```{r}
+regressao_logit <- lm(CRIPTO ~ IDADE + MULHER + BANCODIGITAL + LEITURA + ECON2022
+  + INFLUENCERS + ENSINOSUP + RENDFAM,data = logit)
+summary(regressao_logit)
+```
+
+R-ajustado: O valor R² ajustado de 8,53% para esta regressão implica que 8,53% da variação da variável dependente é explicada pelas variáveis independentes. Ou seja, um valor baixo (<10%), visto que muito pouco se explica.
+
+
+Coeficientes: A priori, analisa-se quais são os coeficientes que são estaticamente significativos, ou seja, com p-value <5%. Dessa forma, a variável ECON2022 (Melhor ou Pior) e a dummy ENSINOSUP são estaticamente iguais a zero. Em relação ao intercepto, ele não é interpretável na prática, visto que não existe um grupo realmente de referência (ou seja, não é possível ter um indivíduo que invista em criptomoeda e apresente todas as demais variáveis igual a zero, por exemplo a idade). Em relação a variável “Idade”, controlando para as demais variáveis, o aumento de um ano de vida do indivíduo, diminui em 0,001587 o valor da previsão. Em relação a dummy “Mulher” controlando para as demais variáveis, o fato do indivíduo ser mulher, diminui em 0,02983 o valor da previsão. Em relação a dummy “Banco Digital”, controlando para as demais variáveis, o fato do indivíduo ter uma conta em banco digital, aumenta em 0,04376 o valor da previsão. Em relação a dummy “Leitura”, controlando para as demais variáveis, o fato do indivíduo ler sobre criptomoedas, aumenta em 0,04514 o valor da previsão. Em relação a dummy “Influencers” , controlando para as demais variáveis, o fato do indivíduo seguir algum influencer que fala sobre temas financeiro, aumenta em 0,04265 o valor da previsão. Em relação a dummy “ RendaF”, controlando para as demais variáveis, o fato do indivíduo ter renda familiar superior a 10 salários mínimos aumenta em 0,03629 o valor da previsão.
+
+
+Estatística F: A estatística F possui p-value inferior a 5%. Dessa forma, podemos rejeitar a hipótese nula e concluir que o modelo irrestrito (mais complexo) proporciona um ajuste melhor do que o modelo restrito, visto que tem uma capacidade explicativa melhor.
+
+
+```{r}
+vif(regressao_logit)
+```
+
+VIF: ( Fatores de inflação da variância) A priori, o fator de inflação da variância (VIF) é uma maneira de medir a multicolinearidade, que avalia o quanto a variância de um coeficiente de regressão estimado aumenta se as suas preditoras estiverem correlacionadas. Se nenhum fator estiver correlacionado, os VIFs serão todos 1, logo, não há multicolinearidade entre os fatores, mas se o VIF for maior que 1, as preditoras podem estar moderadamente correlacionadas. A saída abaixo mostra que o VIF para os fatores de BtM, Ativo total e RPLP são menores que 1.5, o que indica alguma correlação, mas não o suficiente para se preocupar demais com isso
+
+## Questão 3
+
+Estime o modelo anterior utilizando a metodologia LOGIT. Analise os coeficientes do modelo e compare os resultados com os do modelo MQO.
+
+```{r}
+modellogit <-  glm(CRIPTO ~ IDADE + MULHER + BANCODIGITAL + LEITURA + ECON2022
+  + INFLUENCERS + ENSINOSUP + RENDFAM,data = logit,family=binomial(link="logit"))
+summary(modellogit)
+```
+
+Neste modelo, podemos observar que o intercepto possui valor negativo e um desvio padrão alto, porém, ele não é significativo, já que seu p-valor é superior a 5%. Além disso, mesmo que o p-valor fosse inferior a 5%, o intercepto não é passível de ser interpretado na  prática, já que não é possível que alguém apresente 0 em todas os coeficientes invista em criptomoedas, por exemplo, não é possível que alguém que tenha 0 anos invista em criptomoedas. Agora, partindo para os demais coeficientes, podemos inferir que um incremento na idade, controlando para as demais variáveis, causa uma diminuição na chance do investidor em questão investir em criptomoedas, já que seu valor é negativo, e esse coeficiente é significativo para o modelo. O coeficiente “mulher” possui um impacto semelhante ao coeficiente idade, controlando para as demais variáveis, já que, seu valor também é negativo, e o seu p-valor é inferior a 5%. Desse modo, podemos interpretar que, se o investidor em questão pertence ao grupo “mulher”, ele tem uma chance menor de investir em criptomoedas, controlando para as demais variáveis. Em relação ao coeficiente “banco digital”, podemos interpretar que, controlando para as demais variáveis, se o investidor em questão tem conta em banco digital, a sua chance de investir em criptomoedas aumenta, já que o valor numérico desse coeficiente é positivo e ele é significativo para o modelo (p–valor inferior a 5%). Em relação ao coeficiente “influencers”, podemos inferir que se o investidor em questão segue algum influencer que fala de assuntos econômicos, ele possui uma maior chance de investir em criptomoedas, controlando para as demais variáveis, já que seu valor numérico é positivo e o coeficiente é significativo para o modelo (p-valor inferior a 5%). Vale lembrar que, nesse modelo, não conseguimos estimar em quantos % a chance aumenta diminui, podemos saber apenas se o impacto é positivo (aumenta a probabilidade) ou negativo (diminui a probabilidade). Por fim, os demais coeficientes (leitura, econ2022melhor, econ2022pior, ensinisup e rendfam) são estatisticamente iguais a 0, logo, eles não têm impacto na probabilidade. Agora, comparando os resultados encontrados com o modelo do MQO, nos dois modelos o intercepto não é interpretável, e nos dois modelos, os coeficientes econ2022 e ensinosup são estatisticamente iguais a 0. Em relação aos demais coeficientes, tanto leitura, como rendfam são não significativos no modelo LOGIT enquanto no MQO esses coeficientes não são estatisticamente iguais a 0. Por fim, os coeficientes idade, mulher, banco digital e influencers possuem um efeito semelhante, já que um incremento na “idade” e pertencer ao grupo “mulher” vão diminuir a chance do investidor investir em criptomoedas, ao passo que possuir conta em “banco digital” e seguir algum “influencer” que fala de temas financeiros irá aumentar a chance do investidor investir em criptomoedas. Vale lembrar que no MQO é possível estimar numericamente o impacto, enquanto no LOGIT podemos estimar apenas se o impacto é positivo ou negativo.
+
+## Questão 4
+
+Analise o odds-ratio dos coeficientes e os efeitos marginais do modelo.
+
+```{r}
+exp(modellogit$coefficients)
+```
+
+O odds-ratio, a chance de um resultado ocorrer dado uma específica exposição comparada com as chances do resultado ocorrer na ausência dessa exposição, será indispensável para entender as previsões deste modelo. A partir dele podemos verificar quais variáveis possuem maior influência sobre o modelo, sendo as variáveis com o maior odds-ratio em módulo as mais influentes no modelo. Ao observar os valores dos odds-ratios uma variável se destacou pela discrepância do valor de seu odds-ratio em comparação com o resto, a variável “LEITURA”, sendo seu valor 2,821004e+7. Enquanto isso, as outras variáveis possuem um valor de odds-ratio extremamente inferior, sendo o maior deles após o da variável “LEITURA” o da variável “BANCODIGITAL, com um valor de 2,308464. Em sequencia na ordem decrescente vêm as seguintes variáveis “INFLUENCERS”, “RENDFAM”, “ECON2022Melhor”, “ECON2022Pior”, “ENSINOSUP”, “IDADE”, e “MULHER”, sendo que o valor do odds-ratio da variável “MULHER” é 0,948094.
+```{r}
+LogitScalar<-mean(dlogis(predict(modellogit,type="link")))
+LogitScalar*coef(modellogit)
+```
+Por fim, sobre efeitos marginais, houveram três das nossas variáveis que obtiveram seus valores negativos, o que indicaria que a ocorrência delas ou o aumento de uma unidade em seu valor diminui as chances de o indivíduo investir em criptomoedas em certa quantidade. As variáveis com os efeitos marginais negativos são “IDADE”, “MULHER”, e “ENSINOSUP”, com seus respectivos valores iguais a -0,002512; -0,026189; -0,000911. Quanto ao restante, podemos observar que a variável “LEITURA” é a mais influente do modelo, tendo um efeito marginal de 0,638564. Já as outras, não possuem tanta significância, sendo elas em ordem decrescente dos valores de efeitos marginais: “BANCODIGITAL”, “INFLUENCERS”, “RENDFAM”, “ECON2022Melhor”, e “ECON2022Pior”, com seus respectivos valores de 0,031139; 0,030209; 0,017020; 0,007920; e 0,002286.
+
+## Questão 5
+
+Analise os pseudo-R2 do modelo via metodologia de McFadden, r2ML e r2CU.
+Em seguida, analise a acurácia da modelagem, tomando como ponto crítico, a probabilidade de sortear um individuo que investe em criptomoedas na amostra.
+
+```{r message = FALSE}
+#install.packages("pscl")
+library(pscl)
+```
+
+```{r}
+pR2(modellogit)
+```
+
+Pseudo-R2 do modelo via metodologia de McFadden: possui um poder explicativo de aproximadamente 28,9%. Ou seja, cerca de aproximadamente 28,9% da variação da variável dependente é explicada pela variável independente.
+
+
+Pseudo-R2 do modelo via metodologia de r2ML: possui um poder explicativo de aproximadamente 10,1%. Ou seja, cerca de aproximadamente 10,1% da variação da variável dependente é explicada pela variável independente.
+
+
+Pseudo-R2 do modelo via metodologia de r2CU: possui um poder explicativo de aproximadamente 32,8%. Ou seja, cerca de aproximadamente 32,8% da variação da variável dependente é explicada pela variável independente.
+
+
+Acurácia da modelagem: mede a performance do modelo, isto é, o quanto estou acertando do modelo. Este modelo possui uma acurácia de cerca d 76%, dessa forma, nota-se que a modelagem está adequada
+
+
+## Questão 6
+
+
+Com base nos coeficientes da regressão, estime, para cada membro do grupo, a probabilidade dele ser um potencial investidor de criptomoedas. Em seguida, considerando o ponto de corte da questão 5, sinalizem se o modelo acertou ou errou a previsão.
+
+```{r}
+#- Só colocar Idade, Dummy Mulhe, Banco Digital, Influencers
+coef_significantes <- c(modellogit$coefficients[2],modellogit$coefficients[3],
+                        modellogit$coefficients[4],modellogit$coefficients[8])
+
+vetorDiogo <- c(20,0,1,1)
+probDiogo <- exp(sum(t(vetorDiogo) * coef_significantes)) / (1+exp(sum(t(vetorDiogo) * coef_significantes)))
+vetorDiogo <- c(vetorDiogo,probDiogo)
+
+vetorLeticia <- c(19,1,1,1)
+probLeticia <- exp(sum(t(vetorLeticia) * coef_significantes)) / (1+exp(sum(t(vetorLeticia) * coef_significantes)))
+vetorLeticia <- c(vetorLeticia,probLeticia)
+
+
+vetorJoana <- c(19,1,1,1)
+probJoana <- exp(sum(t(vetorJoana) * coef_significantes)) / (1+exp(sum(t(vetorJoana) * coef_significantes)))
+vetorJoana <- c(vetorJoana, probJoana)
+
+vetorLuisa <- c(19,1,1,1)
+probLuisa <- exp(sum(t(vetorLuisa) * coef_significantes)) / (1+exp(sum(t(vetorLuisa) * coef_significantes)))
+vetorLuisa <- c(vetorLuisa, probLuisa)
+# investem :
+ponto_critico <- 0.0453878
+dados <- matrix(data=rbind(vetorDiogo,vetorLeticia,vetorLuisa, vetorJoana),nrow=4)
+rownames(dados) <- c("Diogo","Leticia","Luisa","Joana")
+colnames(dados) <- c("Idade","Mulher","Banco Digital","Influencers","Probabilidade")
+
+dados <- cbind(dados, as.numeric(dados[,'Probabilidade'] > ponto_critico))
+colnames(dados) <- c(colnames(dados)[-6],"Previsao")
+
+dados <- cbind(dados, c(1,0,0,0))
+colnames(dados) <- c(colnames(dados)[-7],"Realidade")
+
+dados <- cbind(dados, dados[,'Previsao'] == dados[,'Realidade'])
+colnames(dados) <- c(colnames(dados)[-8],"Acertou")
+stargazer(dados,type="text")
+results <- matrix(rbind(c(0,.75),c(0,.25)),nrow=2)
+colnames(results) <- c("Falso","Verdadeiro")
+rownames(results) <- c("Falso","Verdadeiro")
+```
+
+```{r}
+results
+```
+
+Para estimarmos se os 4 integrantes do grupo investem ou não em criptomoedas, segundo o modelo, utilizamos as 4 variáveis significativas do modelo, que são: “idade”, “mulher”, “banco digital” e “influencers”. Assim, captamos as informações dos 4 integrantes em relação a esses coeficientes, ou seja, cada um dos integrantes disse a sua idade, se pertence ou não ao grupo “mulher”, se possui ou não conta em “banco digital” e se segue ou não algum “influencer” que fala de temas econômicos. Desse modo, chegamos ao resultado que, todos os integrantes, de acordo com o modelo, investiriam em criptomoedas. Porém, na realidade, apenas um dos integrantes investe em cripto, logo, o modelo acertou apenas uma de quatro previsões.
+
+## Questão 7
+
+Baixe os dados (BaseDP.csv) e em seguida, declare a base de dados como painel.
+```{r}
+DP <- read.table("Dados/BaseDP.csv",sep=';',dec='.',header = TRUE)
+DadosPainel <- pdata.frame(DP,index=c("Banco", "Data"))
+```
+
+## Questão 8
+
+Gere os modelos pooled, de efeitos fixos e efeitos aleatórios para a equação abaixo.
+Em seguida, sumarize os resultados em uma única tabela.
+
+```{r}
+painel_pool <- plm(ROA~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="pooling")
+painel_fixo <- plm(ROA~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="within")
+painel_aleatorio <- plm(ROA~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="random")
+stargazer(painel_pool,painel_aleatorio,painel_fixo,
+          digits=4,
+          type='text',
+          column.labels = c("Pool","Efeito Fixo","Aleatoiro"))
+
+```
+
+
+## Questão 9
+
+Analise os resultados dos modelos gerados do ponto de vista econométrico e prático.
+
+
+## Questão 10
+
+Realize os seguintes testes para determinar qual dos modelos é o mais adequado.
+
+a) Modelo Pooled vs. Modelo de Efeitos Fixos
+```{r}
+pFtest(painel_fixo, painel_pool)
+```
+
+Neste teste, comparamos o Modelo Pooled contra o Modelo de Efeitos Fixos. Assim, a nossa hipótese nula será que o Modelo Pooled é melhor, enquanto a hipótese alternativa afirma que o modelo de Efeitos Fixos é o melhor. Desse modo, como o p-valor do teste foi inferior à 5%, tem-se uma chance muito pequena de descartar a hipótese nula e estar errado. Desse modo, descartamos a hipótese nula e aceitamos a hipótese alternativa, que o Modelo de Efeitos Fixos é melhor.
+
+b) Modelo Pooled vs. Modelo de Efeitos Aleatórios
+```{r}
+plmtest(painel_aleatorio)
+```
+Neste teste, comparamos o Modelo Pooled conta o Modelo de Efeitos Aleatórios. Assim, a nossa hipótese nula será que o Modelo Pooled é melhor, enquanto a hipótese alternativa afirma que o Modelo de Efeitos Aleatórios é o melhor. Desse modo, como o p-valor do teste foi inferior à 5%, tem-se uma chance muito pequena de descartar a hipótese nula e estar errado. Desse modo, descartamos a hipótese nula e aceitamos a hipótese alternativa, que o Modelo de Efeitos Aleatórios é melhor.
+
+
+c) Modelo Efeitos Aleatórios vs. Modelo de Efeitos Fixos
+```{r}
+phtest(painel_fixo,painel_aleatorio)
+```
+
+Neste teste, comparamos o Modelo de Efeitos Aleatórios conta o Modelo de Efeitos Fixos. Assim, a nossa hipótese nula será que o Modelo de Efeitos Aleatórios é melhor, enquanto a hipótese alternativa afirma que o Modelo de Efeitos Fixos é o melhor. Desse modo, como o p-valor do teste foi inferior à 5%, tem-se uma chance muito pequena de descartar a hipótese nula e estar errado. Desse modo, descartamos a hipótese nula e aceitamos a hipótese alternativa, que o Modelo de Efeitos Fixos é melhor.
+
+Resumidamente, para o ROA o melhor modelo é o Fixo
+
+## Questão 11
+
+Reestime os modelos da questão 8 para o ROE e NPL e em seguida, realize os testes da questão 10 para selecionar qual modelo é mais adequado para cada variável.
+```{r}
+# ROE
+ROE_pool <- plm(ROE~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="pooling")
+ROE_fixo <- plm(ROE~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="within")
+ROE_aleatorio <- plm(ROE~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="random")
+#a) Modelo Pooled vs. Modelo de Efeitos Fixos
+pFtest(ROE_fixo, ROE_pool)
+#b) Modelo Pooled vs. Modelo de Efeitos Aleatórios
+plmtest(ROE_aleatorio)
+#c) Modelo Efeitos Aleatórios vs. Modelo de Efeitos Fixos
+phtest(ROE_fixo,ROE_aleatorio)
+```
+
+ROE - Modelo Pooled X Modelo de Efeitos Fixos: Neste teste, comparamos o Modelo Pooled contra o Modelo de Efeitos Fixos. Assim, a nossa hipótese nula será que o Modelo Pooled é melhor, enquanto a hipótese alternativa afirma que o modelo de Efeitos Fixos é o melhor. Desse modo, como o p-valor do teste foi inferior à 5%, tem-se uma chance muito pequena de descartar a hipótese nula e estar errado. Desse modo, descartamos a hipótese nula e aceitamos a hipótese alternativa, que o Modelo de Efeitos Fixos é melhor.
+
+ROE - Modelo Pooled X Modelo de Efeitos Aleatórios: Neste teste, comparamos o Modelo Pooled conta o Modelo de Efeitos Aleatórios. Assim, a nossa hipótese nula será que o Modelo Pooled é melhor, enquanto a hipótese alternativa afirma que o Modelo de Efeitos Aleatórios é o melhor. Desse modo, como o p-valor do teste foi inferior à 5%, tem-se uma chance muito pequena de descartar a hipótese nula e estar errado. Desse modo, descartamos a hipótese nula e aceitamos a hipótese alternativa, que o Modelo de Efeitos Aleatórios é melhor.
+
+ROE - Modelo de Efeitos Fixos X Modelo de Efeitos aleatórios: Neste teste, comparamos o Modelo de Efeitos Aleatórios conta o Modelo de Efeitos Fixos. Assim, a nossa hipótese nula será que o Modelo de Efeitos Aleatórios é melhor, enquanto a hipótese alternativa afirma que o Modelo de Efeitos Fixos é o melhor. Desse modo, como o p-valor do teste foi inferior à 5%, tem-se uma chance muito pequena de descartar a hipótese nula e estar errado. Desse modo, descartamos a hipótese nula e aceitamos a hipótese alternativa, que o Modelo de Efeitos Fixos é melhor.
+
+Resumidamente, para o ROE o melhor modelo é o de efeitos fixos
+
+
+```{r}
+# NPM
+NPM_pool <- plm(NPM~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="pooling")
+NPM_fixo <- plm(NPM~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="within")
+NPM_aleatorio <- plm(NPM~NPL+OEA+LDR+GAP+LNAtivo+PIB, data=DadosPainel, model="random")
+#a) Modelo Pooled vs. Modelo de Efeitos Fixos
+pFtest(NPM_fixo, NPM_pool)
+#b) Modelo Pooled vs. Modelo de Efeitos Aleatórios
+plmtest(NPM_aleatorio)
+#c) Modelo Efeitos Aleatórios vs. Modelo de Efeitos Fixos
+phtest(NPM_fixo,NPM_aleatorio)
+```
+
+NPM - Modelo Pooled X Modelo de Efeitos Fixos: Neste teste, comparamos o Modelo Pooled contra o Modelo de Efeitos Fixos. Assim, a nossa hipótese nula será que o Modelo Pooled é melhor, enquanto a hipótese alternativa afirma que o modelo de Efeitos Fixos é o melhor. Desse modo, como o p-valor do teste foi inferior à 5%, tem-se uma chance muito pequena de descartar a hipótese nula e estar errado. Desse modo, descartamos a hipótese nula e aceitamos a hipótese alternativa, que o Modelo de Efeitos Fixos é melhor.
+
+NPM - Modelo Pooled X Modelo de Efeitos Aleatórios: Neste teste, comparamos o Modelo Pooled conta o Modelo de Efeitos Aleatórios. Assim, a nossa hipótese nula será que o Modelo Pooled é melhor, enquanto a hipótese alternativa afirma que o Modelo de Efeitos Aleatórios é o melhor. Desse modo, como o p-valor do teste foi inferior à 5%, tem-se uma chance muito pequena de descartar a hipótese nula e estar errado. Desse modo, descartamos a hipótese nula e aceitamos a hipótese alternativa, que o Modelo de Efeitos Aleatórios é melhor.
+
+NPM - Modelo de Efeitos Fixos X Modelo de Efeitos aleatórios: Neste teste, comparamos o Modelo de Efeitos Aleatórios conta o Modelo de Efeitos Fixos. Assim, a nossa hipótese nula será que o Modelo de Efeitos Aleatórios é melhor, enquanto a hipótese alternativa afirma que o Modelo de Efeitos Fixos é o melhor. Desse modo, como o p-valor do teste foi inferior à 5%, tem-se uma chance muito pequena de descartar a hipótese nula e estar errado. Desse modo, descartamos a hipótese nula e aceitamos a hipótese alternativa, que o Modelo de Efeitos Fixos é melhor.
+
+Resumidamente, para o NPL o melhor modelo é o de efeitos fixos
+
+
+## Questão 12
+
+
+```{r}
+stargazer(painel_fixo,ROE_fixo,NPM_fixo,
+          digits=4,
+          type='text',
+          title = "Melhores Modelos",
+          omit.stat=c("f", "rsq","adj.rsq"))
+```
+
+
+
