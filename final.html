@@ -767,6 +767,42 @@ stargazer(painel_pool,painel_aleatorio,painel_fixo,
 <h2>Questão 9</h2>
 <p>Analise os resultados dos modelos gerados do ponto de vista
 econométrico e prático.</p>
+<p>Para o modelo Pooled, todas as variáveis assumem o mesmo intercepto,
+portanto possuem um mesmo valor incondicional da variável dependente
+(Return on Assets - ROA), e um nível de significância de até 5%. Com
+esse nível de significância já podemos descartar a importância de duas
+das variáveis presentes no modelo, sendo elas: GAP e NPL, restando as
+outras quatro para analises mais profundas, sendo elas OEA, LNAtivo, LDR
+e PIB.</p>
+<p>Assim, para OEA, LNAtivo, LDR e PIB a probabilidade de se precisar
+rejeitar a hipótese nula, de que os coeficientes pertencem a uma
+distribuição de média zero, é estatisticamente igual a zero. Essas
+variáveis possuem os respectivos betas: 0,0155; 0,00288; 0,007; 0,0076,
+desse modo, o aumento em uma unidade para cada um desses valores irá
+impactar em um aumento no ROA desse módulo.</p>
+<p>Já para o modelo de efeitos fixos, todas as variáveis explicativas
+possuem diferentes interceptou com correlações diferentes de zero. E, ao
+considerar um nível de aceitação de 5%, todas as variáveis explicativas
+com exceção da LNAtivo são sigificativas.</p>
+<p>Para esse modelo, diferente do modelo pooled, uma das variáveis
+apresentou um beta negativo, a variável NPL, sendo o valor de seu beta
+-0,0147. Entretanto, as demais ainda apresentam valores de beta
+positivos, sendo eles em ordem crescente: 0,0030 para LDR, 0,0073 para
+OEA, 0,0077 para GAP e 0,0090 para PIB.</p>
+<p>Por fim, o modelo de efeitos aleatórios, leva em conta quem haverá
+uma heterogeneidade média entre as empresas, uma vez que ele considera
+que a diferença entre as empresas é aleatória. Ainda levando um nível de
+significância de 5%, dessa vez a única variável que não será
+significativa será OEA. Neste modelo NPL ainda será negativo com um beta
+de -0,0215, portanto há uma diminuição no ROA com este módulo a cada
+aumento nesta variável em 1 unidade, porém, para este modelo, diferente
+do apresentado anteriormente, está não será a única com valor negativo,
+teremos também LNAtivo com beta de valor negativo, sendo ele -0,0025.
+Enquanto isso, as variáveis LDR, GAP e PIB, continuam com valores os
+valores de seus betas positivos, sendo eles respectivamente 0,0026;
+0,0106; e 0,0126, portanto, qualquer aumento em uma unidade para cada
+uma dessas unidades causará um aumento no valor do módulo de seus
+respectivos betas no ROA.</p>
 </div>
 <div id="questão-10" class="section level2">
 <h2>Questão 10</h2>
@@ -940,6 +976,10 @@ a hipótese alternativa, que o Modelo de Efeitos Fixos é melhor.</p>
 </div>
 <div id="questão-12" class="section level2">
 <h2>Questão 12</h2>
+<p>Gere uma tabela com o sumário dos modelos mais adequados de acordo
+com as questões 10 e 11 para o ROA, ROE e NPM. Em seguida, verifique a
+consistência dos modelos para as diferentes medidas para captar a
+dimensão E.</p>
 <pre class="r"><code>stargazer(painel_fixo,ROE_fixo,NPM_fixo,
           digits=4,
           type=&#39;text&#39;,
